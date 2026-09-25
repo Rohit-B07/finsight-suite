@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = RAW_API_URL && RAW_API_URL.trim() !== '' ? RAW_API_URL.trim().replace(/\/$/, '') : '/api';
+
 
 async function apiFetch(path, options = {}) {
   const { responseType, ...fetchOptions } = options;
@@ -25,21 +27,37 @@ async function apiFetch(path, options = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...fetchOptions,
-    headers,
-  });
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const fullUrl = `${API_BASE}${normalizedPath}`;
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    const detailMsg = errorData?.detail || errorData?.message || `API error: ${response.status}`;
-    const err = new Error(typeof detailMsg === 'object' ? JSON.stringify(detailMsg) : detailMsg);
-    err.status = response.status;
-    err.data = errorData;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(fullUrl, {
+      ...fetchOptions,
+      headers,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      const detailMsg = errorData?.detail || errorData?.message || `API error: ${response.status}`;
+      const err = new Error(typeof detailMsg === 'object' ? JSON.stringify(detailMsg) : detailMsg);
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
+    }
+
+    return responseType === 'blob' ? response.blob() : response.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
     throw err;
   }
-
-  return responseType === 'blob' ? response.blob() : response.json();
 }
 
 export const api = {

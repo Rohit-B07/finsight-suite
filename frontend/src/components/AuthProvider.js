@@ -4,7 +4,9 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { supabase } from '../lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = RAW_API_URL && RAW_API_URL.trim() !== '' ? RAW_API_URL.trim().replace(/\/$/, '') : '/api';
+
 
 const AuthContext = createContext({
   user: null,
