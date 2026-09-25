@@ -34,11 +34,25 @@ async function apiFetch(path, options = {}) {
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
-    const response = await fetch(fullUrl, {
-      ...fetchOptions,
-      headers,
-      signal: controller.signal,
-    });
+    let response;
+    try {
+      response = await fetch(fullUrl, {
+        ...fetchOptions,
+        headers,
+        signal: controller.signal,
+      });
+    } catch (fetchErr) {
+      if (API_BASE !== '/api') {
+        const fallbackUrl = `/api${normalizedPath}`;
+        response = await fetch(fallbackUrl, {
+          ...fetchOptions,
+          headers,
+          signal: controller.signal,
+        });
+      } else {
+        throw fetchErr;
+      }
+    }
     clearTimeout(timeoutId);
 
     if (!response.ok) {
@@ -58,6 +72,7 @@ async function apiFetch(path, options = {}) {
     }
     throw err;
   }
+
 }
 
 export const api = {

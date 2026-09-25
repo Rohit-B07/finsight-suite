@@ -77,11 +77,24 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      let res;
+      try {
+        res = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+      } catch (networkErr) {
+        if (API_URL !== '/api') {
+          res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+        } else {
+          throw networkErr;
+        }
+      }
 
       const data = await res.json();
       if (!res.ok) {
@@ -106,16 +119,34 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, password, fullName) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          password,
-          full_name: fullName,
-          role: 'admin',
-        }),
-      });
+      let res;
+      try {
+        res = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+            full_name: fullName,
+            role: 'admin',
+          }),
+        });
+      } catch (networkErr) {
+        if (API_URL !== '/api') {
+          res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email,
+              password,
+              full_name: fullName,
+              role: 'admin',
+            }),
+          });
+        } else {
+          throw networkErr;
+        }
+      }
 
       const data = await res.json();
       if (!res.ok) {
@@ -136,6 +167,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
 
   const signInWithGoogle = async () => {
     setLoading(true);
