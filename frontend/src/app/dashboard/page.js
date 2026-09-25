@@ -11,6 +11,7 @@ import TrendChart from '../../components/TrendChart';
 import RiskAlertFeed from '../../components/RiskAlertFeed';
 import { PieChart, Pie, Cell, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend } from 'recharts';
 import { api } from '../../lib/api';
+import { exportDashboardPdf } from '../../lib/pdfExport';
 
 export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
@@ -51,14 +52,10 @@ export default function DashboardPage() {
   }, []);
 
   const exportDashboard = () => {
-    const blob = new Blob([JSON.stringify({ budget: data.budget, risk: data.risk }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `finsight-dashboard-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    exportDashboardPdf(data);
   };
+
+
 
   const spendTrendData = [
     { month: 'Apr', actual: 420, recommended: 450, forecast: 480 },

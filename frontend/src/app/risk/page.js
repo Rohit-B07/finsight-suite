@@ -6,6 +6,8 @@ import RiskAlertFeed from '../../components/RiskAlertFeed';
 import TrendChart from '../../components/TrendChart';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { exportRiskPdf } from '../../lib/pdfExport';
+
 import {
   ArrowUpRight, ArrowDownRight, Minus, ShieldAlert, Activity,
   Bell, RefreshCw, TrendingUp, AlertTriangle, CheckCircle,
@@ -95,14 +97,10 @@ export default function RiskPage() {
   const filteredAlerts = severityFilter === 'all' ? data.alerts : data.alerts.filter(a => (a.severity || '').toLowerCase() === severityFilter);
 
   const exportReport = () => {
-    const blob = new Blob([JSON.stringify({ dashboard: data.dashboard, alerts: data.alerts }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `finsight-risk-report-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    exportRiskPdf(data);
   };
+
+
 
   if (data.loading) {
     return (

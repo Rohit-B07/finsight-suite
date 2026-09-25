@@ -5,10 +5,12 @@ import BudgetTable from '../../components/BudgetTable';
 import BudgetSlider from '../../components/BudgetSlider';
 import TrendChart from '../../components/TrendChart';
 import { api } from '../../lib/api';
+import { exportBudgetPdf } from '../../lib/pdfExport';
 import {
   RefreshCw, Zap, Scale, Target, TrendingUp, TrendingDown,
-  Sparkles, Calculator, Save, CheckCircle2, AlertCircle
+  Sparkles, Calculator, Save, CheckCircle2, AlertCircle, Download
 } from 'lucide-react';
+
 
 export default function BudgetPage() {
   const [scenario, setScenario] = useState('balanced');
@@ -119,6 +121,10 @@ export default function BudgetPage() {
     { name: 'Sep', Conservative: 480, Balanced: 550, Aggressive: 620 },
   ];
 
+  const exportPlan = () => {
+    exportBudgetPdf({ recommendations: results?.recommendations, scenario_type: scenario });
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -131,6 +137,9 @@ export default function BudgetPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          <button onClick={exportPlan} className="btn-outline">
+            <Download className="w-4 h-4" /> Export PDF
+          </button>
           <button onClick={saveDraft} className="btn-outline">
             <Save className="w-4 h-4" /> Save Draft
           </button>
@@ -139,6 +148,7 @@ export default function BudgetPage() {
             disabled={loading}
             className="btn-primary"
           >
+
             {loading ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
